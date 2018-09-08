@@ -1,0 +1,23 @@
+{
+  "name": "fast-delete",
+  "version": "1.0.0",
+  "description": "",
+  "main": "delete.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "agentkeepalive": "^3.5.1",
+    "commander": "^2.18.0",
+    "dotenv": "^6.0.0",
+    "es6-promise-pool": "^2.5.0",
+    "lsof": "^0.1.0",
+    "query-string": "^6.1.0",
+    "request": "^2.88.0",
+    "winston": "^3.1.0",
+    "xmldom": "^0.1.27",
+    "xpath": "0.0.27"
+  }
+}
