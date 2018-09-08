@@ -11,7 +11,6 @@ const querystring = require("query-string");
 const crypto = require("crypto");
 const promisePool = require("es6-promise-pool");
 const readline = require("readline");
-const lsof = require("lsof");
 
 // prototype extensions
 String.prototype.replaceAll = function (search, replacement) {
@@ -345,15 +344,13 @@ if (MODE.toLowerCase() === "delete") {
 
     // handle done or terminate
     const progress = () => {
-        lsof.counters(counters => {
-            const now = new Date();
-            const elapsed = (now - start) / 1000;
-            if (count > 0) {
-                logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes, ${Math.round(count / elapsed)}/sec, file desc: ${counters.open}.`);
-            } else {
-                logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes, file desc: ${counters.open}.`);
-            }
-        });
+        const now = new Date();
+        const elapsed = (now - start) / 1000;
+        if (count > 0) {
+            logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes, ${Math.round(count / elapsed)}/sec.`);
+        } else {
+            logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes.`);
+        }
     };
 
     // start with fetch and then delete

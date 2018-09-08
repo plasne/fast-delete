@@ -13,7 +13,6 @@
     "commander": "^2.18.0",
     "dotenv": "^6.0.0",
     "es6-promise-pool": "^2.5.0",
-    "lsof": "^0.1.0",
     "query-string": "^6.1.0",
     "request": "^2.88.0",
     "winston": "^3.1.0",
