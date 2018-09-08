@@ -99,9 +99,6 @@ if (!STORAGE_KEY && !STORAGE_SAS) throw new Error("You must specify either STORA
 // use an HTTP(s) agent with keepalive and connection pooling
 const agent = new agentKeepAlive.HttpsAgent({
     maxSockets: CONCURRENCY + 50,
-    maxFreeSockets: 10,
-    timeout: 60000,
-    freeSocketKeepAliveTimeout: 30000
 });
 
 function generateSignature(path, options) {
