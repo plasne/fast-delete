@@ -375,9 +375,9 @@ if (MODE.toLowerCase() === "delete") {
         const now = new Date();
         const elapsed = (now - start) / 1000;
         if (count > 0) {
-            logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes, ${Math.round(count / elapsed)}/sec.`);
+            logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes, ${Math.round(count / elapsed)}/sec, buffer: ${buffer.length}.`);
         } else {
-            logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes.`);
+            logger.info(`${count} blob(s) deleted after ${(elapsed / 60).toFixed(2)} minutes, buffer: ${buffer.length}.`);
         }
     };
 
