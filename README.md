@@ -2,11 +2,10 @@
 
 A customer needed to delete ~10 million files in a single "folder" of an Azure Blob Storage container which contained many millions of other files. Of course, there is no such thing as folders in Blob Storage, instead actually have a problem whereby there are 10s of millions of files in a container, but we need to delete all of them that start with a particular string for their filename. Simply iterating that number of files can be problematic.
 
-We tried a few options:
+We tried a couple options:
 
 1. Azure Storage Explorer - The best result we could get was about 20 deletes/sec, or about 6 days to delete the 10 million documents.
-2. AzCopy - We could use it to move files, we didn't need them, but it would get rid of them. Th
-3. az storage blob delete-batch - 
+3. az storage blob delete-batch - This has no progress indicator and as far as I could tell it was single-threaded, but it ran about 20 deletes/sec as well.
 
 Since none of those solutions were ideal, I wrote fast-delete. If you have a small number of files to delete, this is probably more complex than you need, but if you have millions of blobs to delete, this might be a good fit.
 
