@@ -21,15 +21,15 @@ String.prototype.replaceAll = function (search, replacement) {
 // define command line parameters
 cmd
     .version("0.1.0")
+    .option("-a, --account <s>", `[REQUIRED] STORAGE_ACCOUNT. The name of the Azure Storage Account.`)
+    .option("-c, --container <s>", `[REQUIRED] STORAGE_CONTAINER. The name of the Azure Storage Account Container.`)
+    .option("-s, --sas <s>", `[REQUIRED?] STORAGE_SAS. The Shared Access Signature querystring. Either STORAGE_SAS or STORAGE_KEY is required.`)
+    .option("-k, --key <s>", `[REQUIRED?] STORAGE_KEY. The Azure Storage Account key. Either STORAGE_SAS or STORAGE_KEY is required.`)
     .option("-l, --log-level <s>", `LOG_LEVEL. The minimum level to log to the console (error, warn, info, verbose, debug, silly). Defaults to "info".`, /^(error|warn|info|verbose|debug|silly)$/i)
-    .option("-a, --account <s>", `STORAGE_ACCOUNT. Required. The name of the Azure Storage Account.`)
-    .option("-c, --container <s>", `STORAGE_CONTAINER. Required. The name of the Azure Storage Account Container.`)
-    .option("-s, --sas <s>", `STORAGE_SAS. The Shared Access Signature querystring.`)
-    .option("-k, --key <s>", `STORAGE_KEY. The Azure Storage Account key.`)
     .option("-p, --prefix <s>", `PREFIX. Specify to only delete blobs with this prefix. Ex. "20180101T000000/input".`)
     .option("-m, --mode <s>", `MODE. Can be "delete" or "test" (just shows what would be deleted). Defaults to "test".`)
     .option("-x, --concurrency <i>", `CONCURRENCY. The number of delete operations to perform at a time. Defaults to "100".`, parseInt)
-    .option("-e, --on-error <s>", `ON_ERROR. Can be "halt" or "continue". Default is "halt".`)
+    .option("-e, --on-error <s>", `ON_ERROR. When an error is encountered during delete, the process can "halt" or "continue". Default is "halt".`)
     .option("-r, --retries <i>", `RETRIES. You can specify a number of times to retry the deletion. Default is "0".`, parseInt)
     .parse(process.argv);
 
@@ -51,12 +51,12 @@ if (isNaN(RETRIES)) RETRIES = 100;
 
 // enable logging
 const logColors = {
-    "error": "\x1b[31m", // red
-    "warn": "\x1b[33m", // yellow
-    "info": "",         // white
+    "error": "\x1b[31m",   // red
+    "warn": "\x1b[33m",    // yellow
+    "info": "",            // white
     "verbose": "\x1b[32m", // green
-    "debug": "\x1b[32m", // green
-    "silly": "\x1b[32m"  // green
+    "debug": "\x1b[32m",   // green
+    "silly": "\x1b[32m"    // green
 };
 const logger = winston.createLogger({
     level: LOG_LEVEL,
@@ -250,7 +250,10 @@ function listBlobs(marker) {
 
 // perform a test
 if (MODE.toLowerCase() === "test") {
+    let start = new Date();
     let count = 0;
+
+    // fetch a list of blobs
     const fetch = async (marker) => {
         try {
             const results = await listBlobs(marker);
@@ -261,7 +264,8 @@ if (MODE.toLowerCase() === "test") {
             if (results.marker) {
                 setTimeout(() => { fetch(results.marker); }, 0);
             } else {
-                logger.log(`${count} blob(s) would have been deleted.`);
+                clearInterval(i);
+                progress();
             }
         } catch (error) {
             logger.error(`There was a fatal error. Program aborting.`);
@@ -269,7 +273,31 @@ if (MODE.toLowerCase() === "test") {
             process.exit(1);
         }
     }
+
+    // show progress
+    const progress = () => {
+        const now = new Date();
+        const elapsed = (now - start) / 1000;
+        if (count > 0) {
+            logger.info(`${count} blob(s) listed after ${(elapsed / 60).toFixed(2)} minutes, ${Math.round(count / elapsed)}/sec.`);
+        } else {
+            logger.info(`${count} blob(s) listed after ${(elapsed / 60).toFixed(2)} minutes.`);
+        }
+    };
+
+    // start fetching
+    const i = setInterval(progress, 1000);
     setTimeout(() => { fetch(); }, 0);
+
+    // gracefully shutdown
+    process.on("SIGINT", () => {
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        logger.info(`user terminated the execution.`);
+        progress();
+        process.exit(0);
+    });
+
 }
 
 // perform a delete
@@ -342,7 +370,7 @@ if (MODE.toLowerCase() === "delete") {
         }
     }
 
-    // handle done or terminate
+    // show progress
     const progress = () => {
         const now = new Date();
         const elapsed = (now - start) / 1000;
