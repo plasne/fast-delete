@@ -117,7 +117,7 @@ Given the first constraint, the maximum throughput (records deleted per second) 
 
 Due to this same constraint, it does **not** benefit us to consider a more robust architecture (for example, scaling the deletion threads across Docker containers).
 
-## Fragmentation
+## Garbage Collection
 
 After deleting 10 million documents and then creating some replacements into the same "folder", I observed much slower performance iterating the "folder". If we run test mode on the "folder" we will find that we are getting 2-8 items per call instead of the expected ~5,000.
 
