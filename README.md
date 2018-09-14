@@ -121,12 +121,7 @@ Due to this same constraint, it does **not** benefit us to consider a more robus
 
 After deleting 10 million documents and then creating some replacements into the same "folder", I observed much slower performance iterating the "folder". If we run test mode on the "folder" we will find that we are getting 2-8 items per call instead of the expected ~5,000.
 
-My theory on this is:
-
-* Azure Blob Storage is partitioning the files.
-* When we had 10 million files, we had a couple thousand partitions (I am assuming 5,000 blobs per partition).
-* We kept all the partitions and so as we added files back we ended up with only a few per partition.
-* The partitions need to be merged to a more reasonable number.
+After speaking with the product group, this is due to garbage collection. The collection time on 10 million documents is indeterminate but it is likely to be days to more than a week. When a page of blobs is requested, it finds 5,000 blobs and then trims that list based on what is deleted, so those pages can be very sparse if there is a lot of blobs marked for deletion.
 
 ## Windows vs. Linux
 
