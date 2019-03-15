@@ -5,7 +5,7 @@ A customer needed to delete ~10 million files in a single "folder" of an Azure B
 We tried a couple options:
 
 1. Azure Storage Explorer - The best result we could get was about 20 deletes/sec, or about 6 days to delete the 10 million documents.
-3. az storage blob delete-batch - This has no progress indicator and as far as I could tell it was single-threaded, but it ran about 20 deletes/sec as well.
+2. az storage blob delete-batch - This has no progress indicator and as far as I could tell it was single-threaded, but it ran about 20 deletes/sec as well.
 
 Since none of those solutions were ideal, I wrote fast-delete. If you have a small number of files to delete, this is probably more complex than you need, but if you have millions of blobs to delete, this might be a good fit.
 
@@ -14,8 +14,9 @@ CAUTION: This application is designed to delete files from blob storage very qui
 ## Installation
 
 Install:
-* [Node.js](https://nodejs.org/en/download/)
-* [Git](https://git-scm.com/downloads)
+
+-   [Node.js](https://nodejs.org/en/download/)
+-   [Git](https://git-scm.com/downloads)
 
 ```bash
 git clone https://github.com/plasne/fast-delete
@@ -82,11 +83,11 @@ node delete --account teststore --container files --key aafe...g=== --prefix 201
 
 Once you have completed a test and are comfortable with what will be deleted, you can simply add "--mode delete" to your existing command. There are a few other options to consider though:
 
-* CONCURRENCY - You might experiment with this value to see where you get the best rate. I did notice some generalizations between Windows (~20 is better) and Linux (~100 is better).
+-   CONCURRENCY - You might experiment with this value to see where you get the best rate. I did notice some generalizations between Windows (~20 is better) and Linux (~100 is better).
 
-* ON_ERROR - The default is to "halt" on error, this is probably good to get started, but once you are confident, you might change this to "continue" for unattended execution.
+-   ON_ERROR - The default is to "halt" on error, this is probably good to get started, but once you are confident, you might change this to "continue" for unattended execution.
 
-* RETRIES - By default, the application will attempt to delete every blob once and then terminate. However, you can set some retries and when the application has attempted to delete everything once, it can go back and try and second time, third, etc. I did notice that when running very large delete operations like this there were occational transient faults.
+-   RETRIES - By default, the application will attempt to delete every blob once and then terminate. However, you can set some retries and when the application has attempted to delete everything once, it can go back and try and second time, third, etc. I did notice that when running very large delete operations like this there were occational transient faults.
 
 Example:
 
@@ -98,10 +99,10 @@ node delete --account teststore --container files --key aafe...g=== --prefix 201
 
 There is quite a range of results I was able to record, but you can expect somewhere between 800 and 1500 deletes/second. Some things to consider to tweak performance:
 
-* Running other operations in your storage account might be slowing this down.
-* Running the delete from a VM in the same region might improve performance.
-* You can get radically different results running with a different number of threads, you should play around with CONCURRENCY.
-* I got the best results running on a Saturday morning.
+-   Running other operations in your storage account might be slowing this down.
+-   Running the delete from a VM in the same region might improve performance.
+-   You can get radically different results running with a different number of threads, you should play around with CONCURRENCY.
+-   I got the best results running on a Saturday morning.
 
 I did testing on a number of different VM sizes, the performance capped out with a D4v3, so you do not need anything bigger than that.
 
@@ -109,7 +110,7 @@ I did testing on a number of different VM sizes, the performance capped out with
 
 There are 2 activities going on during this process:
 
-1. The list of blobs is constantly being queried until this buffer exceeds 50,000. This process of iteration cannot be done in parallel (a pointer is being moved through the records). 
+1. The list of blobs is constantly being queried until this buffer exceeds 50,000. This process of iteration cannot be done in parallel (a pointer is being moved through the records).
 
 2. The deletion of blobs is done in parallel at the specified CONCURRENCY.
 
@@ -127,10 +128,10 @@ After speaking with the product group, this is due to garbage collection. The co
 
 For this section assume the reference to "Linux" also includes macOS, while I realize they are not the same thing, the behavior was consistent.
 
-* Windows tended to have better throughput at a lower number of threads, 20-30.
-* Linux tended to have better throughput at a higher number of threads, ~100.
-* Windows tended to run out of ephemeral ports from time to time. This could probably help: [https://docs.oracle.com/cd/E26180_01/Search.94/ATGSearchAdmin/html/s1207adjustingtcpsettingsforheavyload01.html](https://docs.oracle.com/cd/E26180_01/Search.94/ATGSearchAdmin/html/s1207adjustingtcpsettingsforheavyload01.html).
-* As the CONCURRENCY gets higher, Windows tended to "leak" ephemeral ports (more were allocated than the connection pool) stipulated.
+-   Windows tended to have better throughput at a lower number of threads, 20-30.
+-   Linux tended to have better throughput at a higher number of threads, ~100.
+-   Windows tended to run out of ephemeral ports from time to time. This could probably help: [https://docs.oracle.com/cd/E26180_01/Search.94/ATGSearchAdmin/html/s1207adjustingtcpsettingsforheavyload01.html](https://docs.oracle.com/cd/E26180_01/Search.94/ATGSearchAdmin/html/s1207adjustingtcpsettingsforheavyload01.html).
+-   As the CONCURRENCY gets higher, Windows tended to "leak" ephemeral ports (more were allocated than the connection pool) stipulated.
 
 It honestly did not make that much difference in the final execution whether it was run on Windows or Linux, however, Linux will give a lot less errors and give you more room to fine-tune the CONCURRENCY.
 
@@ -168,4 +169,6 @@ There are 3 things that can happen in the producer function:
 
 ## Future Enhancements
 
-* I would like to add a RegExp tester instead of simply prefix to be more flexible.
+-   I would like to add a RegExp tester instead of simply prefix to be more flexible.
+
+-   Sean Elliott suggested changing the iteration to prefix + [A-Z][0-9] and running multiple threads for that iteration. Using multiple threads for iteration should keep the buffer more full.
